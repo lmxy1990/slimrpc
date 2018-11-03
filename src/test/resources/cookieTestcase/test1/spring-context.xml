@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config/>
+
+	<bean name="userServiceImpl" factory-bean="engineToCenterGateway"
+		factory-method="createConsumerProxy">
+		<constructor-arg value="com.github.slimrpc.service.UserService"/>
+	</bean>
+
+	<bean name="engineToCenterGateway" class="github.mappingrpc.core.CoreEngine"
+		init-method="start">
+		<constructor-arg value="false"/>
+		<property name="serverList">
+			<props>
+				<prop key="localhost">6200</prop>
+				<prop key="localhost">6200</prop>
+				<prop key="localhost">6200</prop>
+			</props>
+		</property>
+
+		<property name="siteConfig">
+			<props>
+				<prop key="client.fixture_savePath">target/cookieStore</prop>
+			</props>
+		</property>
+	</bean>
+</beans>
