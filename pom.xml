@@ -21,8 +21,8 @@
     <scm>
         <tag>slimrpc-core-1.0.0</tag>
         <url>https://github.com/lmxy1990/slimrpc</url>
-        <connection>scm:git:lmxy1990@github.com:lmxy1990/slimrpc.git</connection>
-        <developerConnection>scm:git:lmxy1990@github.com:lmxy1990/slimrpc.git</developerConnection>
+        <connection>scm:git:https://github.com/lmxy1990/slimrpc.git</connection>
+        <developerConnection>scm:git:https://github.com/lmxy1990/slimrpc.git</developerConnection>
     </scm>
 
     <developers>
