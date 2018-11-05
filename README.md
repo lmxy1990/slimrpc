@@ -32,10 +32,11 @@
 2. 客户端,添加配置
 
 <code>
+
     <bean name="rpcClient" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close">
         <property name="serverList">
             <props>
-                <prop key="localhost">6200</prop>
+                <prop key="localhost">`6200`</prop>
             </props>
         </property>
     </bean>
