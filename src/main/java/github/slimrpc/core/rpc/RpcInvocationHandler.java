@@ -5,7 +5,6 @@ import github.slimrpc.core.metadata.ApiProxyMeta;
 import github.slimrpc.core.util.Methods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.misc.MethodUtil;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -29,7 +28,7 @@ public class RpcInvocationHandler implements InvocationHandler {
 
 	public <T> T generateProxy(Class<?> clazz) {
 		String clazzName = clazz.getName();
-		Method[] methods = MethodUtil.getPublicMethods(clazz);
+		Method[] methods = clazz.getMethods() ;
 		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
 			String methodSign = Methods.methodSign(method);

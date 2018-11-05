@@ -6,7 +6,6 @@ import github.slimrpc.core.metadata.ProviderMeta;
 import github.slimrpc.core.util.Methods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.misc.MethodUtil;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -51,7 +50,7 @@ public class StubSkeletonManager {
             String className = classInfo.substring(0, classInfo.indexOf("@"));
             try {
                 annotationClass = Class.forName(className);
-                Method[] methodList = MethodUtil.getPublicMethods(annotationClass);
+                Method[] methodList = annotationClass.getMethods() ;
                 for (Method method : methodList) {
                     //rpc方法过滤
                     if (!checkRpcMethod(method)) continue;
@@ -79,7 +78,7 @@ public class StubSkeletonManager {
                 log.error("{fullInfo:'" + classInfo + "', className:'" + className + "'}", e);
             }
         } else {
-            Method[] methodList = MethodUtil.getPublicMethods(callClass);
+            Method[] methodList = callClass.getMethods() ;
             for (Method method : methodList) {
                 //rpc方法过滤
                 if (!checkRpcMethod(method)) continue;
