@@ -16,7 +16,7 @@
         </property>
     </bean>
 
-    <!--创建bean-->
+    <!--创建prxoy bean-->
     <bean name="userService" factory-bean="rpcClient" factory-method="createConsumerProxy">
         <constructor-arg value="com.github.slimrpc.service.UserService"/>
     </bean>

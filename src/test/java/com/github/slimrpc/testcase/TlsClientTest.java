@@ -17,8 +17,6 @@ public class TlsClientTest extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
 	private UserService userService;
-	@Autowired
-	private SlimRpcClient rpcClient ;
 
 	@Test
 	public void testClient() throws Throwable {
