@@ -1,5 +1,6 @@
 package github.slimrpc.core.io.manager;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,11 @@ public class CookieStoreManager {
 	final static String emptyContent = "[]";
 
 	public CookieStoreManager(String connectionName, String savePath) {
+
 		super();
+		if (StringUtils.isEmpty(savePath)) {
+			savePath = "target/cookie";
+		}
 		saveFilePath = savePath + File.separatorChar;
 		File path = new File(saveFilePath);
 		path.mkdirs();

@@ -11,6 +11,12 @@
                 <prop key="127.0.0.1" >6300</prop>
             </props>
         </property>
+        <!--cookie-->
+        <property name="siteConfig">
+            <props>
+                <prop key="client.fixture_savePath">target/cookieStore</prop>
+            </props>
+        </property>
     </bean>
 
     <!--创建bean-->
