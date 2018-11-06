@@ -68,6 +68,7 @@
                     <compilerArgs>
                         <arg>-XDignore.symbol.file</arg>
                     </compilerArgs>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
 
