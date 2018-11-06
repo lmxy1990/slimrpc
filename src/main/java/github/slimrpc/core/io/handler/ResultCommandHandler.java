@@ -27,8 +27,12 @@ public class ResultCommandHandler {
         if (callResult.getReturnType() == null) {
             callResult.returnWithVoid();
         } else {
-            String resultJson = jsonArray.getJSONArray(3).getJSONObject(0).toJSONString();
-            Object result = JSONObject.parseObject(resultJson, callResult.getReturnType());
+            Object obj = jsonArray.getJSONArray(3).get(0);
+            if (JSONObject.class.isAssignableFrom(obj.getClass())){
+                JSONObject jsonObj = (JSONObject) obj;
+                obj = jsonObj.toJavaObject(callResult.getReturnType());
+            }
+            Object result = obj;
             callResult.putResultAndReturn(result);
         }
     }

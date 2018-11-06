@@ -13,67 +13,149 @@
 
 
 ## demo
+---
+
+1.添加依赖
+
+```
+<dependency>
+  <groupId>io.github.lmxy1990</groupId>
+  <artifactId>slimrpc-core</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+2.创建接口
+
+```
+public interface UserService {
+
+    String sayHello(String name) ;
 
 
-1. 服务端,添加配置
+    UserResult login(UserOption userOption) ;
 
-<code>
-    <!--bean-->
-    <bean name="userServiceImpl" class="com.github.slimrpc.service.mock.UserServiceImpl"/>
+}
+```
+3.服务端实现接口
+
+```
+@Component
+@EnableSlimRpc
+public class UserServiceImpl implements UserService {
 
 
-    <!--RPC 服务-->
-    <bean name="rpcServer" class="github.slimrpc.core.api.SlimRpcServer" init-method="start" destroy-method="close">
-        <!--监听端口-->
-        <property name="listenPort" value="6200"/>
+    @Override
+    public String sayHello(String name) {
+        return "hello ," + name;
+    }
+
+
+    @Override
+    public UserResult login(UserOption userOption) {
+
+        System.out.println("用户:" + userOption.getName());
+        System.out.println("年龄:" + userOption.getAge() + "正在请求登录");
+        UserResult result = new UserResult();
+        result.setName(userOption.getName());
+        result.setLoginInfo("登录信息:" + RandomStringUtils.randomAlphabetic(20));
+        return result;
+    }
+}
+
+```
+
+4. 服务端,添加配置
+
+```
+    <!--扫描路径,也可以直接配置-->
+    <context:component-scan base-package="github.slimrpc" />
+
+
+    <!--开启rpc 服务-->
+    <bean class="github.slimrpc.core.api.SlimRpcServer" init-method="start" destroy-method="close" >
+        <property name="listenPort" value="6300" />
     </bean>
-</code>
+```
 
-2. 客户端,添加配置
+5. 客户端,添加配置
 
-<code>
-
-    <bean name="rpcClient" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close">
+```
+    <!--rpc服务器配置-->
+    <bean name="rpc" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close" >
         <property name="serverList">
             <props>
-                <prop key="localhost">`6200`</prop>
+                <prop key="127.0.0.1" >6300</prop>
             </props>
         </property>
     </bean>
 
-    <!--创建prxoy bean-->
-    <bean name="userService" factory-bean="rpcClient" factory-method="createConsumerProxy">
-        <constructor-arg value="com.github.slimrpc.service.UserService"/>
+    <!--创建bean-->
+    <bean name="userService" factory-bean="rpc" factory-method="createConsumerProxy">
+        <!--接口路径-->
+        <constructor-arg value="github.slimrpc.service.UserService" />
     </bean>
-</code>
+    
+```
  
- 3. Test
- 
-<code>
- 
-	@Autowired
-	private UserService userService;
+ 6. 启动服务端
 
-	@Test
-	public void testClient() throws Throwable {
-		User user = new User();
-		user.setDisplayName("mayun");
-		LoginOption option = new LoginOption();
+```
+@ContextConfiguration({"/spring-context-server.xml"})
+public class TestServer extends AbstractJUnit4SpringContextTests {
 
-		// Thread.sleep(1000 * 5);
 
-		ModelResult<User> loginResult = null;
-		try {
-			loginResult = userService.login(user, "123password", option);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.err.println("login:" + loginResult.getModel().getDisplayName());
-		Thread.sleep(1000 * 30);
-	}
-</code>
+    @Test
+    public void testStartServer(){
+
+        try {
+            Thread.sleep(100000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+}
+
+```
+
+7.客户端发起请求
+
+ ```
+ @ContextConfiguration({"/spring-context-client.xml"})
+ public class TestClient extends AbstractJUnit4SpringContextTests {
+ 
+     @Autowired
+     @Qualifier("userService")
+     private UserService userService ;
  
  
+     @Test
+     public void testSayHello(){
+ 
+         String mayun = userService.sayHello("mayun");
+ 
+         System.out.println(mayun);
+ 
+     }
+ 
+ 
+     @Test
+     public void testMyClassParam() {
+         UserOption option  = new UserOption("zhangsan","32") ;
+ 
+         UserResult login = userService.login(option);
+ 
+         System.out.println(login.getLoginInfo());
+ 
+     }
+ 
+ 
+ }
+ 
+ ```
  
 
 

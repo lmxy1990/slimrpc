@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!--rpc服务器配置-->
+    <bean name="rpc" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close" >
+        <property name="serverList">
+            <props>
+                <prop key="127.0.0.1" >6300</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--创建bean-->
+    <bean name="userService" factory-bean="rpc" factory-method="createConsumerProxy">
+        <!--接口路径-->
+        <constructor-arg value="github.slimrpc.service.UserService" />
+    </bean>
+
+
+
+</beans>
