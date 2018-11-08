@@ -190,6 +190,9 @@
                                 <version>1.8.1</version>
                             </dependency>
                         </dependencies>
+                        <configuration>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                        </configuration>
                     </plugin>
                     <!-- Source -->
                     <plugin>
