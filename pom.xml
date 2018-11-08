@@ -4,7 +4,7 @@
 
     <groupId>io.github.lmxy1990</groupId>
     <artifactId>slimrpc-core</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 
 
     <name>slimrpc-core</name>
@@ -19,7 +19,7 @@
     </licenses>
 
     <scm>
-        <tag>slimrpc-core-1.0.0</tag>
+        <tag>HEAD</tag>
         <url>https://github.com/lmxy1990/slimrpc</url>
         <connection>scm:git:git://github.com/lmxy1990/slimrpc.git</connection>
         <developerConnection>scm:git:git@github.com:lmxy1990/slimrpc.git</developerConnection>
