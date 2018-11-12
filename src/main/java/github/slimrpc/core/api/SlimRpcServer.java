@@ -56,6 +56,11 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
     @Autowired
     private ApplicationContext applicationContext;
 
+    /**
+     * 采用spring配置加入
+     *
+     * @param providerClazzes
+     */
     public SlimRpcServer(List<ProviderClazz> providerClazzes) {
         for (int i = 0; i < providerClazzes.size(); i++) {
             ProviderClazz providerClazz = providerClazzes.get(i);
@@ -174,6 +179,10 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
     }
 
 
+    /**
+     * 注解的bean,自动加入
+     *
+     */
     private void initRpcServer() {
         String[] beansName = applicationContext.getBeanDefinitionNames();
         for (int i = 0; i < beansName.length; i++) {
