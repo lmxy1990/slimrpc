@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="slimrpc-core" options="-XDignore.symbol.file" />
+      <module name="slimrpc-core" options="" />
     </option>
   </component>
 </project>
