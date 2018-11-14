@@ -21,7 +21,7 @@
 <dependency>
   <groupId>io.github.lmxy1990</groupId>
   <artifactId>slimrpc-core</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
