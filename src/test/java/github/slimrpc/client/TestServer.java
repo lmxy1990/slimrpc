@@ -20,11 +20,11 @@ public class TestServer extends AbstractJUnit4SpringContextTests {
     @Test
     public void testStartServer(){
 
-/*        try {
+        try {
             Thread.sleep(100000000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }*/
+        }
 
     }
 

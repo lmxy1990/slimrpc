@@ -5,10 +5,7 @@ import github.slimrpc.core.domain.ProviderClazz;
 import github.slimrpc.core.domain.TlsConfig;
 import github.slimrpc.core.io.ConnectionGroup;
 import github.slimrpc.core.io.annotation.EnableSlimRpc;
-import github.slimrpc.core.io.custom.Byte2WampDecoder;
-import github.slimrpc.core.io.custom.RpcConnection;
-import github.slimrpc.core.io.custom.Wamp2ByteBufEncoder;
-import github.slimrpc.core.io.custom.WampJsonArrayHandler;
+import github.slimrpc.core.io.custom.*;
 import github.slimrpc.core.io.manager.ClientCookieManager;
 import github.slimrpc.core.io.manager.CookieStoreManager;
 import github.slimrpc.core.metadata.MetaHolder;
@@ -99,8 +96,6 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
         ServerBootstrap nettyBoot = new ServerBootstrap();
         //http黏包处理.分包,lengthFieldLength 数据格式长度.1=1byte=8位=256,2=16位,3=24位,4=32位,8=64位,true表示长度位会添加到值中
         final LengthFieldPrepender frameEncoder = new LengthFieldPrepender(4, true);
-        //FrameDecoder
-        LengthFieldBasedFrameDecoder frameDecoder = new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4);
         //编码,Message -> ByteBuf
         final Wamp2ByteBufEncoder msgEncoder = new Wamp2ByteBufEncoder();
         //解码,ByteBuf -> Message
@@ -116,7 +111,7 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-                        //pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+//                        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
 
                         if (sslContext != null) {
                             SSLEngine tlsEngine = sslContext.createSSLEngine();
@@ -125,11 +120,14 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
                             SslHandler tlsHandler = new SslHandler(tlsEngine, false);
                             pipeline.addLast(tlsHandler);
                         }
-                        pipeline.addLast(frameEncoder)// encoder顺序要保证
-                                .addLast(frameDecoder)
-                                .addLast(msgEncoder)
-                                .addLast(msgDecoder)
-                                .addLast(msgHandler);
+                        //in:1,2,3 ,out 5,4
+                        pipeline
+                                .addLast("4", frameEncoder)//out 4
+                                .addLast("5", msgEncoder)//out 5
+                                .addLast("1", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, -4, 4))//in 1
+                                .addLast("2", msgDecoder)//in 2
+                                .addLast("3",msgHandler)//in 3
+                        ;
                         RpcConnection rpcConnection = new RpcConnection(ch, metaHolder, cookieManager);
                         connectionGroup.addConnection(rpcConnection);
                     }
@@ -188,7 +186,6 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
 
     /**
      * 注解的bean,自动加入
-     *
      */
     private void initRpcServer() {
         String[] beansName = applicationContext.getBeanDefinitionNames();

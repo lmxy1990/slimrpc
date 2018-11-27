@@ -105,12 +105,10 @@ public class RpcConnection {
         eventLoopGroup = new NioEventLoopGroup();
         //分包
         final LengthFieldPrepender frameEncoder = new LengthFieldPrepender(4, true);
-        //组包
-        final LengthFieldBasedFrameDecoder frameDecoder = new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4);
         //encode
-        final Wamp2ByteBufEncoder msgEncode = new Wamp2ByteBufEncoder();
+        final Wamp2ByteBufEncoder msgEncoder = new Wamp2ByteBufEncoder();
         //decode
-        final Byte2WampDecoder msgDecode = new Byte2WampDecoder();
+        final Byte2WampDecoder msgDecoder = new Byte2WampDecoder();
         //handler
         final WampJsonArrayHandler msgHandler = new WampJsonArrayHandler(metaHolder);
         //connect status
@@ -126,7 +124,7 @@ public class RpcConnection {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-                        //pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+//                        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
 
                         if (sslContext != null) {
                             SSLEngine tlsEngine = sslContext.createSSLEngine();
@@ -136,11 +134,12 @@ public class RpcConnection {
                             pipeline.addLast(tlsHandler);
                         }
                         pipeline.addLast(connectionStateHandler)
-                                .addLast(frameEncoder)// encoder顺序要保证
-                                .addLast(frameDecoder)
-                                .addLast(msgEncode)
-                                .addLast(msgDecode)
-                                .addLast(msgHandler);
+                                .addLast("4", frameEncoder)//out 4
+                                .addLast("5", msgEncoder)//out 5
+                                .addLast("1", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, -4, 4))//in 1
+                                .addLast("2", msgDecoder)//in 2
+                                .addLast("3",msgHandler)//in 3
+                        ;
                     }
                 });
 
