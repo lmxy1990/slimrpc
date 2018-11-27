@@ -77,6 +77,7 @@ public class ConnectionGroup {
             daemonThread.addTimerJob(new KeepConnectionJob(connection));
             lastConnection = connection;
         }
+        //建立链接
         lastConnection.makeConnectionInCallerThread();
 
         daemonThread.addTimerJob(new FlushCookieJob());

@@ -103,17 +103,24 @@ public class RpcConnection {
         }
 
         eventLoopGroup = new NioEventLoopGroup();
-        final LengthFieldPrepender customLenFrameEncoder = new LengthFieldPrepender(4, true);
-        final Wamp2ByteBufEncoder wamp2ByteBufEncoder = new Wamp2ByteBufEncoder();
-        final Byte2WampDecoder byte2WampDecoder = new Byte2WampDecoder();
+        //分包
+        final LengthFieldPrepender frameEncoder = new LengthFieldPrepender(4, true);
+        //组包
+        final LengthFieldBasedFrameDecoder frameDecoder = new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4);
+        //encode
+        final Wamp2ByteBufEncoder msgEncode = new Wamp2ByteBufEncoder();
+        //decode
+        final Byte2WampDecoder msgDecode = new Byte2WampDecoder();
+        //handler
         final WampJsonArrayHandler msgHandler = new WampJsonArrayHandler(metaHolder);
+        //connect status
         final ConnectionStateHandler connectionStateHandler = new ConnectionStateHandler(connectionStatus);
 
         Bootstrap clientBoot = new Bootstrap();
         clientBoot.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15 * 1000) // IMPORTANT
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15 * 1000) // 超时时间
                 .option(ChannelOption.TCP_NODELAY, true)
                 .handler(new ChannelInitializer<Channel>() {
                     @Override
@@ -129,28 +136,25 @@ public class RpcConnection {
                             pipeline.addLast(tlsHandler);
                         }
                         pipeline.addLast(connectionStateHandler)
-                                .addLast(customLenFrameEncoder)// encoder顺序要保证
-                                .addLast(wamp2ByteBufEncoder)
-                                .addLast(new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4))
-                                .addLast(byte2WampDecoder)
+                                .addLast(frameEncoder)// encoder顺序要保证
+                                .addLast(frameDecoder)
+                                .addLast(msgEncode)
+                                .addLast(msgDecode)
                                 .addLast(msgHandler);
                     }
                 });
 
         try {
+            //链接
             ChannelFuture channelFuture = clientBoot.connect(serverConfig.getServerName(), serverConfig.getPort());
             channel = channelFuture.channel();
-            channelFuture.addListener(new ChannelFutureListener() {
-
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isDone() && future.cause() != null) {
-                        connectionStatus.set(ConnectionStatusConstant.disconnected);
-                        log.error("{serverName:\"" + serverConfig.getServerName() + "\", serverPort:" + serverConfig.getPort() + "}", future.cause());
-                    } else {
-                        log.info("{msg:\"connected\", serverName:\"" + serverConfig.getServerName() + "\", serverPort:" + serverConfig.getPort() + "}");
-                        serverConfig.addConnectSuccessCount();
-                    }
+            channelFuture.addListener((ChannelFutureListener) future -> {
+                if (future.isDone() && future.cause() != null) {
+                    connectionStatus.set(ConnectionStatusConstant.disconnected);
+                    log.error("{serverName:\"" + serverConfig.getServerName() + "\", serverPort:" + serverConfig.getPort() + "}", future.cause());
+                } else {
+                    log.info("{msg:\"connected\", serverName:\"" + serverConfig.getServerName() + "\", serverPort:" + serverConfig.getPort() + "}");
+                    serverConfig.addConnectSuccessCount();
                 }
             });
 
@@ -252,7 +256,7 @@ public class RpcConnection {
             } else {
                 throw new TimeoutException("timeout exceed 300000ms");// TODO
             }
-        }finally {
+        } finally {
             metaHolder.getRequestPool().remove(callCmd.getRequestId());
         }
     }

@@ -97,9 +97,15 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
         connectionGroup.startServer();
 
         ServerBootstrap nettyBoot = new ServerBootstrap();
-        final LengthFieldPrepender customLenFrameEncoder = new LengthFieldPrepender(4, true);
-        final Wamp2ByteBufEncoder wamp2ByteBufEncoder = new Wamp2ByteBufEncoder();
-        final Byte2WampDecoder byte2WampDecoder = new Byte2WampDecoder();
+        //http黏包处理.分包,lengthFieldLength 数据格式长度.1=1byte=8位=256,2=16位,3=24位,4=32位,8=64位,true表示长度位会添加到值中
+        final LengthFieldPrepender frameEncoder = new LengthFieldPrepender(4, true);
+        //FrameDecoder
+        LengthFieldBasedFrameDecoder frameDecoder = new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4);
+        //编码,Message -> ByteBuf
+        final Wamp2ByteBufEncoder msgEncoder = new Wamp2ByteBufEncoder();
+        //解码,ByteBuf -> Message
+        final Byte2WampDecoder msgDecoder = new Byte2WampDecoder();
+        //handler
         final WampJsonArrayHandler msgHandler = new WampJsonArrayHandler(metaHolder);
 
         nettyBoot.group(bossEventLoop, workerEventLoop)
@@ -119,16 +125,17 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
                             SslHandler tlsHandler = new SslHandler(tlsEngine, false);
                             pipeline.addLast(tlsHandler);
                         }
-                        pipeline.addLast(customLenFrameEncoder)// encoder顺序要保证
-                                .addLast(wamp2ByteBufEncoder)
-                                .addLast(new LengthFieldBasedFrameDecoder(1000000, 0, 4, -4, 4))
-                                .addLast(byte2WampDecoder)
+                        pipeline.addLast(frameEncoder)// encoder顺序要保证
+                                .addLast(frameDecoder)
+                                .addLast(msgEncoder)
+                                .addLast(msgDecoder)
                                 .addLast(msgHandler);
                         RpcConnection rpcConnection = new RpcConnection(ch, metaHolder, cookieManager);
                         connectionGroup.addConnection(rpcConnection);
                     }
                 });
         try {
+            //启动
             ChannelFuture channelFuture = nettyBoot.bind(listenPort).sync();
         } catch (Throwable ex) {
             log.error("{bindPort:" + listenPort + "}", ex);

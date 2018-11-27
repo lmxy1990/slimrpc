@@ -22,6 +22,7 @@ public class WampJsonArrayHandler extends ChannelInboundHandlerAdapter {
 		}
 		JSONArray jsonArray = (JSONArray) msg;
 		WampCommandBaseHandler commandHandler = new WampCommandBaseHandler(metaHolder, ctx, jsonArray);
+		//运行
 		metaHolder.getThreadPool().submit(commandHandler);
 	}
 }
