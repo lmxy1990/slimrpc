@@ -62,7 +62,7 @@ public class ConnectionGroup {
         }
 
         if (tlsConfig != null) {
-            initClientSslContext(tlsConfig, sslContext);
+            initSslContext(tlsConfig, sslContext);
         }
 
         CookieStoreManager cookieStoreManager = new CookieStoreManager(siteConfig.get(SiteConfigConstant.client_connectionName), siteConfig.get(SiteConfigConstant.client_fixture_savePath));
@@ -89,14 +89,16 @@ public class ConnectionGroup {
         daemonThread = new TimerAndEventDaemonThread(1000, bossThreadEventQueue);
     }
 
-    public void initClientSslContext(TlsConfig tlsConfig, SSLContext sslContext) {
+    public void initSslContext(TlsConfig tlsConfig, SSLContext sslContext) {
         if (tlsConfig != null && sslContext == null) {
             try {
+                //用于身份认证的证书(也可以使用某个指定的证书文件)
                 KeyStore keyStore = KeyStore.getInstance("JKS");
                 keyStore.load(new FileInputStream(tlsConfig.getTlsKeyStoreFilePath()), tlsConfig.getTlsKeyStorePassword().toCharArray());
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 keyManagerFactory.init(keyStore, tlsConfig.getTlsKeyPassword().toCharArray());
 
+                //用于验证对方数据
                 KeyStore certStore = KeyStore.getInstance("JKS");
                 certStore.load(new FileInputStream(tlsConfig.getTlsCertStorePath()), tlsConfig.getTlsCertStorePassword().toCharArray());
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

@@ -90,7 +90,7 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
         ClientCookieManager cookieManager = new ClientCookieManager(cookieStoreManager);
         cookieManager.start();
 
-        connectionGroup.initClientSslContext(tlsConfig, sslContext);
+        connectionGroup.initSslContext(tlsConfig, sslContext);
         connectionGroup.startServer();
 
         ServerBootstrap nettyBoot = new ServerBootstrap();
