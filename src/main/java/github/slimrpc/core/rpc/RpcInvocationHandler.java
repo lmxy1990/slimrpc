@@ -18,7 +18,7 @@ import java.util.Map;
 public class RpcInvocationHandler implements InvocationHandler {
 	Logger log = LoggerFactory.getLogger(RpcInvocationHandler.class);
 
-	private ConnectionGroup connectionGroup;
+	private final ConnectionGroup connectionGroup;
 	Map<Method, ApiProxyMeta> apiHolder = new HashMap<>();
 
 	public RpcInvocationHandler(ConnectionGroup connectionGroup) {
@@ -29,17 +29,16 @@ public class RpcInvocationHandler implements InvocationHandler {
 	public <T> T generateProxy(Class<?> clazz) {
 		String clazzName = clazz.getName();
 		Method[] methods = clazz.getMethods() ;
-		for (int i = 0; i < methods.length; i++) {
-			Method method = methods[i];
-			String methodSign = Methods.methodSign(method);
+        for (Method method : methods) {
+            String methodSign = Methods.methodSign(method);
 
-			ApiProxyMeta apiMeta = new ApiProxyMeta();
-			apiMeta.setItfName(clazzName);
-			apiMeta.setMethodSign(methodSign);
-			apiMeta.setParameterTypes(method.getParameterTypes());
-			apiMeta.setReturnType(method.getGenericReturnType());
-			apiHolder.put(method, apiMeta);
-		}
+            ApiProxyMeta apiMeta = new ApiProxyMeta();
+            apiMeta.setItfName(clazzName);
+            apiMeta.setMethodSign(methodSign);
+            apiMeta.setParameterTypes(method.getParameterTypes());
+            apiMeta.setReturnType(method.getGenericReturnType());
+            apiHolder.put(method, apiMeta);
+        }
 		Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, this);
 		return (T) proxy;
 	}
@@ -47,7 +46,7 @@ public class RpcInvocationHandler implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		// 过滤掉hashCode()/toString()/equals等本地方法
-		if (!StubSkeletonManager.checkRpcMethod(method)){
+		if (StubSkeletonManager.checkRpcMethod(method)){
 			return null ;
 		}
 

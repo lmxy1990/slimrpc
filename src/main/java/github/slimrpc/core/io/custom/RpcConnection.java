@@ -177,7 +177,7 @@ public class RpcConnection {
         if (this.sslContext != null) { // TLS hava self heartbeat mechanism
             return channel.isActive();
         }
-        if (connectionStatus.get() == ConnectionStatusConstant.actived && channel.isActive()) {
+        if (connectionStatus.get() == ConnectionStatusConstant.activated && channel.isActive()) {
             return true;
         }
         return false;

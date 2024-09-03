@@ -1,6 +1,6 @@
 package github.slimrpc.service.impl;
 
-import github.slimrpc.core.io.annotation.EnableSlimRpc;
+import github.slimrpc.core.io.annotation.OpenSlimRpc;
 import github.slimrpc.domain.UserOption;
 import github.slimrpc.domain.UserResult;
 import github.slimrpc.service.UserService;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @create: 2018-11-06 09:39
  **/
 @Component
-@EnableSlimRpc
+@OpenSlimRpc
 public class UserServiceImpl implements UserService {
 
 

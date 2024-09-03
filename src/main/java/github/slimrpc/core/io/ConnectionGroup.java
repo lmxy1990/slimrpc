@@ -9,14 +9,17 @@ import github.slimrpc.core.io.manager.ClientCookieManager;
 import github.slimrpc.core.io.manager.CookieStoreManager;
 import github.slimrpc.core.metadata.MetaHolder;
 import github.slimrpc.core.metadata.ServerMeta;
+import github.slimrpc.core.util.IpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.List;
 import java.util.Map;
@@ -44,25 +47,29 @@ public class ConnectionGroup {
     public void start() {
     }
 
-    public void startClient(Map<String, String> serverList, TlsConfig tlsConfig, Map<String, String> siteConfig, MetaHolder metaHolder) {
+    public void startClient(List<String> serverList, TlsConfig tlsConfig, Map<String, String> siteConfig, MetaHolder metaHolder) {
         bossThreadEventQueue = new LinkedBlockingQueue<ClientDaemonThreadEvent>(100);
         daemonThread = new TimerAndEventDaemonThread(3000, bossThreadEventQueue);
 
         this.siteConfig = siteConfig;
         this.metaHolder = metaHolder;
 
-        for (Map.Entry<String, String> serverPair : serverList.entrySet()) {
-            ServerMeta serverMeta = new ServerMeta(serverPair.getKey(), Integer.parseInt(serverPair.getValue()));
-            serverMetaList.add(serverMeta);
+        Assert.notEmpty(serverList, "serverList is empty");
 
+        for (String serverConfig : serverList) {
+            Assert.isTrue(IpUtil.isIPAndPort(serverConfig), "serverConfig is not ip:port format");
+            // 端口
+            ServerMeta serverMeta = new ServerMeta(IpUtil.getIp(serverConfig), IpUtil.getPort(serverConfig));
+            serverMetaList.add(serverMeta);
             if (serverList.size() == 1) {
                 serverMetaList.add(serverMeta);
                 serverMetaList.add(serverMeta);
             }
         }
 
+        // 初始化sslContext
         if (tlsConfig != null) {
-            initSslContext(tlsConfig, sslContext);
+            initSslContext(tlsConfig);
         }
 
         CookieStoreManager cookieStoreManager = new CookieStoreManager(siteConfig.get(SiteConfigConstant.client_connectionName), siteConfig.get(SiteConfigConstant.client_fixture_savePath));
@@ -89,18 +96,18 @@ public class ConnectionGroup {
         daemonThread = new TimerAndEventDaemonThread(1000, bossThreadEventQueue);
     }
 
-    public void initSslContext(TlsConfig tlsConfig, SSLContext sslContext) {
+    public void initSslContext(TlsConfig tlsConfig) {
         if (tlsConfig != null && sslContext == null) {
             try {
                 //用于身份认证的证书(也可以使用某个指定的证书文件)
                 KeyStore keyStore = KeyStore.getInstance("JKS");
-                keyStore.load(new FileInputStream(tlsConfig.getTlsKeyStoreFilePath()), tlsConfig.getTlsKeyStorePassword().toCharArray());
+                keyStore.load(Files.newInputStream(Paths.get(tlsConfig.getTlsKeyStoreFilePath())), tlsConfig.getTlsKeyStorePassword().toCharArray());
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 keyManagerFactory.init(keyStore, tlsConfig.getTlsKeyPassword().toCharArray());
 
                 //用于验证对方数据
                 KeyStore certStore = KeyStore.getInstance("JKS");
-                certStore.load(new FileInputStream(tlsConfig.getTlsCertStorePath()), tlsConfig.getTlsCertStorePassword().toCharArray());
+                certStore.load(Files.newInputStream(Paths.get(tlsConfig.getTlsCertStorePath())), tlsConfig.getTlsCertStorePassword().toCharArray());
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(certStore);
 

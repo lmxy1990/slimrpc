@@ -9,7 +9,7 @@
 
 
     <!--开启rpc 服务-->
-    <bean class="github.slimrpc.core.api.SlimRpcServer" init-method="start" destroy-method="close" >
+    <bean class="github.slimrpc.core.api.RpcProxyServer" init-method="start" destroy-method="close" >
         <property name="listenPort" value="6300" />
     </bean>
 

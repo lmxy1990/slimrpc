@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONAware;
 
 public class CallCmdCookie implements JSONAware {
 	
-	private String content;
+	private final String content;
 	
 	public CallCmdCookie(String content){
 		this.content = content;

@@ -2,7 +2,7 @@ package github.slimrpc.core.io.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import github.slimrpc.core.domain.UserSession;
-import github.slimrpc.core.io.cmd.WellcomeCommand;
+import github.slimrpc.core.io.cmd.WelcomeCommand;
 import github.slimrpc.core.metadata.MetaHolder;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -26,13 +26,13 @@ public class HelloCommandHandler {
 				log.warn("{msg:'uuid碰撞'}");
 				channelCtx.close();
 			}
-			WellcomeCommand wellcome = new WellcomeCommand();
+			WelcomeCommand wellcome = new WelcomeCommand();
 			wellcome.setSession(sessionId);
 			channelCtx.writeAndFlush(wellcome);
 			// TODO call sessionListener
 		} else {
 			String sessionId = realm;
-			WellcomeCommand wellcome = new WellcomeCommand();
+			WelcomeCommand wellcome = new WelcomeCommand();
 			wellcome.setSession(sessionId);
 			channelCtx.writeAndFlush(wellcome);
 			channelCtx.writeAndFlush(wellcome);

@@ -3,16 +3,17 @@ package github.slimrpc.core.io.annotation;
 import java.lang.annotation.*;
 
 /**
- * 不暴露的方法
+ * EnableSlimRpc
  * <p>
- * 释义:
+ * 释义: 该接口开启RPC服务
  *
  * @author: xinyi.pan
- * @create: 2018-11-03 09:56
+ * @create: 2018-11-02 17:49
  **/
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Inherited
-public @interface DisSlimRpcMethod {
+public @interface OpenSlimRpc {
+
 }

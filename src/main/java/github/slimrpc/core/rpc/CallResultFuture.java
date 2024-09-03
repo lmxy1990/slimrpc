@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 public class CallResultFuture {
     private Object result;
     private JSONObject detail;
-    Object lock = new Object();
+    final Object lock = new Object();
 
     private Type returnType;
 
@@ -24,7 +24,6 @@ public class CallResultFuture {
             try {
                 lock.wait(timeoutInMs);
             } catch (InterruptedException e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }

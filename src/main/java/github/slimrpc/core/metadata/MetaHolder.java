@@ -20,8 +20,8 @@ public class MetaHolder {
      * 第二层,方法名+参数个数
      *
      */
-    private Map<String, Map<String,ProviderMeta>> providerHolder = new HashMap<>();
-    private Map<String, RpcInvocationHandler> clientProxyHolder = new HashMap<>();
+    private final Map<String, Map<String,ProviderMeta>> providerHolder = new HashMap<>();
+    private final Map<String, RpcInvocationHandler> clientProxyHolder = new HashMap<>();
     private Map<Long, CallResultFuture> requestPool = new ConcurrentHashMap<>();
     private long feature1 = Feature1.clientFeature_needKeepConnection;
     private ExecutorService threadPool;

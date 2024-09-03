@@ -6,7 +6,7 @@ import github.slimrpc.core.io.constant.MsgTypeConstant;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class CallCommand implements WampCommandBase {
-	private int msgType = MsgTypeConstant.call;
+	private final int msgType = MsgTypeConstant.call;
 	//某次请求的唯一标识符,用于结果回调
 	private long requestId = 1;
 	private JSONObject options = new JSONObject();

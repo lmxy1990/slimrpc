@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
 
     <!--开启rpc 服务-->
-    <bean class="github.slimrpc.core.api.SlimRpcServer" init-method="start" destroy-method="close" >
+    <bean class="github.slimrpc.core.api.RpcProxyServer" init-method="start" destroy-method="close" >
         <property name="listenPort" value="6300" />
     </bean>
 ```
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
 
 ```
     <!--rpc服务器配置-->
-    <bean name="rpc" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close" >
+    <bean name="rpc" class="github.slimrpc.core.api.RpcProxyFactoryBean" init-method="start" destroy-method="close" >
         <property name="serverList">
             <props>
                 <prop key="127.0.0.1" >6300</prop>

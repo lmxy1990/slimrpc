@@ -1,8 +1,8 @@
 package github.slimrpc.core.api;
 
 import github.slimrpc.core.callback.ClientSideBizListener;
+import github.slimrpc.core.config.RpcProperties;
 import github.slimrpc.core.constant.SiteConfigConstant;
-import github.slimrpc.core.domain.TlsConfig;
 import github.slimrpc.core.io.ConnectionGroup;
 import github.slimrpc.core.metadata.MetaHolder;
 import github.slimrpc.core.rpc.StubSkeletonManager;
@@ -18,38 +18,33 @@ import java.util.concurrent.*;
 /**
  * 客户端API
  */
-public class SlimRpcClient implements BeanNameAware, Closeable {
-    static Logger log = LoggerFactory.getLogger(SlimRpcClient.class);
+public class RpcProxyFactoryBean implements BeanNameAware, Closeable {
+    static Logger log = LoggerFactory.getLogger(RpcProxyFactoryBean.class);
 
-    private long feature1 = 0;
-    private TlsConfig tlsConfig = null;
-    //域名-->端口
-    private Map<String, String> serverList;
-    private Map<String, String> siteConfig = new ConcurrentHashMap<String, String>();
-    private String beanName;
-    private String cookieStoreManagerClass = "github.slimrpc.core.io.manager.CookieStoreManager";
-    private boolean needStoreCookieToDisk = false;
+    private final RpcProperties rpcProperties;
+    private final Map<String, String> cookieSiteConfig = new ConcurrentHashMap<String, String>();
 
     MetaHolder metaHolder = new MetaHolder();
     ConnectionGroup connectionGroup = new ConnectionGroup();
+    private String beanName;
 
-
-    public SlimRpcClient() {
+    public RpcProxyFactoryBean(RpcProperties rpcProperties) {
+        this.rpcProperties = rpcProperties;
     }
 
     public void start() {
-        metaHolder.setFeature1(feature1);
+        metaHolder.setFeature1(rpcProperties.getTargetFeature());
         ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(300);
-        ExecutorService threadPool = new ThreadPoolExecutor(4, 80, 60, TimeUnit.SECONDS, workQueue);// TODO
+        ExecutorService threadPool = new ThreadPoolExecutor(4, 80, 60, TimeUnit.SECONDS, workQueue);
         // 加上rejectHandle
         metaHolder.setThreadPool(threadPool);
 
-        siteConfig.put(SiteConfigConstant.client_connectionName, this.beanName);
+        cookieSiteConfig.put(SiteConfigConstant.client_connectionName, this.beanName);
 
-        connectionGroup.startClient(serverList, tlsConfig, siteConfig, metaHolder);
+        connectionGroup.startClient(rpcProperties.getTargetServerIPAndPortList(), rpcProperties.getTargetTlsConfig(), cookieSiteConfig, metaHolder);
     }
 
-    public <T> T createConsumerProxy(Class<?> clazz) {
+    public <T> T createProxyBean(Class<?> clazz) {
         return StubSkeletonManager.createConsumerProxy(connectionGroup, clazz, metaHolder);
     }
 
@@ -69,33 +64,9 @@ public class SlimRpcClient implements BeanNameAware, Closeable {
         return connectionGroup.isRpcWithServerOk();
     }
 
-    public Map<String, String> getServerList() {
-        return serverList;
-    }
-
-    public void setServerList(Map<String, String> serverList) {
-        this.serverList = serverList;
-    }
-
-    public void setFeature1(long connectionFeature) {
-        this.feature1 = connectionFeature;
-    }
-
-    @Override
-    public void setBeanName(String name) {
-        this.beanName = name;
-    }
-
-    public void setSiteConfig(Map<String, String> siteConfig) {
-        this.siteConfig = siteConfig;
-    }
 
     public void setClientSideConnectedBizListener(ClientSideBizListener listener) {
 
-    }
-
-    public void setTlsConfig(TlsConfig tlsConfig) {
-        this.tlsConfig = tlsConfig;
     }
 
     @Override
@@ -104,4 +75,8 @@ public class SlimRpcClient implements BeanNameAware, Closeable {
     }
 
 
+    @Override
+    public void setBeanName(String name) {
+        this.beanName = name;
+    }
 }

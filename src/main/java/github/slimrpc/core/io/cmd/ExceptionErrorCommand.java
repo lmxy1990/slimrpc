@@ -5,7 +5,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import github.slimrpc.core.io.constant.MsgTypeConstant;
 
 public class ExceptionErrorCommand implements WampCommandBase {
-	private int msgType = MsgTypeConstant.error;
+	private final int msgType = MsgTypeConstant.error;
 	private int requestType = MsgTypeConstant.call;
 	private long requestId = 0;
 	private String details = "{}";

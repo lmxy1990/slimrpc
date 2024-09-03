@@ -53,7 +53,7 @@ public class StubSkeletonManager {
                 Method[] methodList = annotationClass.getMethods() ;
                 for (Method method : methodList) {
                     //rpc方法过滤
-                    if (!checkRpcMethod(method)) continue;
+                    if (checkRpcMethod(method)) continue;
 
                     ProviderMeta meta = new ProviderMeta();
                     String methodSign = Methods.methodSign(method);
@@ -81,7 +81,7 @@ public class StubSkeletonManager {
             Method[] methodList = callClass.getMethods() ;
             for (Method method : methodList) {
                 //rpc方法过滤
-                if (!checkRpcMethod(method)) continue;
+                if (checkRpcMethod(method)) continue;
 
                 String methodSign = Methods.methodSign(method);
                 ProviderMeta meta = new ProviderMeta();
@@ -108,14 +108,13 @@ public class StubSkeletonManager {
      */
     public static boolean checkRpcMethod(final Method method) {
         //本地方法不代理
-        if ("toString".equals(method.getName())) return false;
-        if ("hashCode".equals(method.getName())) return false;
-        if ("notifyAll".equals(method.getName())) return false;
-        if ("equals".equals(method.getName())) return false;
-        if ("wait".equals(method.getName())) return false;
-        if ("getClass".equals(method.getName())) return false;
-        if ("notify".equals(method.getName())) return false;
-        return true;
+        if ("toString".equals(method.getName())) return true;
+        if ("hashCode".equals(method.getName())) return true;
+        if ("notifyAll".equals(method.getName())) return true;
+        if ("equals".equals(method.getName())) return true;
+        if ("wait".equals(method.getName())) return true;
+        if ("getClass".equals(method.getName())) return true;
+        return "notify".equals(method.getName());
     }
 
 }

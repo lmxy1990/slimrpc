@@ -1,11 +1,14 @@
 package github.slimrpc.core.api;
 
+import github.slimrpc.core.config.RpcProperties;
 import github.slimrpc.core.constant.SiteConfigConstant;
 import github.slimrpc.core.domain.ProviderClazz;
-import github.slimrpc.core.domain.TlsConfig;
 import github.slimrpc.core.io.ConnectionGroup;
-import github.slimrpc.core.io.annotation.EnableSlimRpc;
-import github.slimrpc.core.io.custom.*;
+import github.slimrpc.core.io.annotation.OpenSlimRpc;
+import github.slimrpc.core.io.custom.Byte2WampDecoder;
+import github.slimrpc.core.io.custom.RpcConnection;
+import github.slimrpc.core.io.custom.Wamp2ByteBufEncoder;
+import github.slimrpc.core.io.custom.WampJsonArrayHandler;
 import github.slimrpc.core.io.manager.ClientCookieManager;
 import github.slimrpc.core.io.manager.CookieStoreManager;
 import github.slimrpc.core.metadata.MetaHolder;
@@ -22,7 +25,6 @@ import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 
@@ -37,39 +39,40 @@ import java.util.concurrent.*;
 /**
  * 服务端开启RPC入口类
  */
-public class SlimRpcServer implements BeanNameAware, Closeable {
-    static Logger log = LoggerFactory.getLogger(SlimRpcServer.class);
+public class RpcProxyServer implements BeanNameAware, Closeable {
+    static Logger log = LoggerFactory.getLogger(RpcProxyServer.class);
 
-    private int listenPort;
-    private TlsConfig tlsConfig = null;
-    private Map<String, String> siteConfig = new ConcurrentHashMap<String, String>();
-    private String beanName;
+    private RpcProperties rpcProperties;
+    private final Map<String, String> cookieSiteConfig = new ConcurrentHashMap<String, String>();
+    private SSLContext sslContext = null;
 
     EventLoopGroup bossEventLoop = new NioEventLoopGroup();
     EventLoopGroup workerEventLoop = new NioEventLoopGroup();
-    SSLContext sslContext = null;
     ConnectionGroup connectionGroup = new ConnectionGroup();
     MetaHolder metaHolder = new MetaHolder();
-    @Autowired
+
     private ApplicationContext applicationContext;
+    private String beanName;
+
+    public RpcProxyServer(RpcProperties rpcProperties, ApplicationContext applicationContext) {
+        this.rpcProperties = rpcProperties;
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * 采用spring配置加入
      *
-     * @param providerClazzes
+     * @param providerClazzList
      */
-    public SlimRpcServer(List<ProviderClazz> providerClazzes) {
-        for (int i = 0; i < providerClazzes.size(); i++) {
-            ProviderClazz providerClazz = providerClazzes.get(i);
+    public RpcProxyServer(List<ProviderClazz> providerClazzList) {
+        for (int i = 0; i < providerClazzList.size(); i++) {
+            ProviderClazz providerClazz = providerClazzList.get(i);
             if (providerClazz.clazz == null || providerClazz.bean == null) {
                 log.error("interface config has empty!please check provider config!");
                 continue;
             }
             this.createProvider(providerClazz.clazz, providerClazz.bean);
         }
-    }
-
-    public SlimRpcServer() {
     }
 
     /**
@@ -84,13 +87,14 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
         // 加上rejectHandle
         metaHolder.setThreadPool(threadPool);
 
-        siteConfig.put(SiteConfigConstant.client_connectionName, this.beanName);
-
-        CookieStoreManager cookieStoreManager = new CookieStoreManager(siteConfig.get(SiteConfigConstant.client_connectionName), siteConfig.get(SiteConfigConstant.client_fixture_savePath));
+        // cookie
+        cookieSiteConfig.put(SiteConfigConstant.client_connectionName, this.beanName);
+        CookieStoreManager cookieStoreManager = new CookieStoreManager(cookieSiteConfig.get(SiteConfigConstant.client_connectionName), cookieSiteConfig.get(SiteConfigConstant.client_fixture_savePath));
         ClientCookieManager cookieManager = new ClientCookieManager(cookieStoreManager);
         cookieManager.start();
 
-        connectionGroup.initSslContext(tlsConfig, sslContext);
+        // ssl
+        connectionGroup.initSslContext(rpcProperties.getMyTlsConfig());
         connectionGroup.startServer();
 
         ServerBootstrap nettyBoot = new ServerBootstrap();
@@ -126,7 +130,7 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
                                 .addLast("5", msgEncoder)//out 5
                                 .addLast("1", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, -4, 4))//in 1
                                 .addLast("2", msgDecoder)//in 2
-                                .addLast("3",msgHandler)//in 3
+                                .addLast("3", msgHandler)//in 3
                         ;
                         RpcConnection rpcConnection = new RpcConnection(ch, metaHolder, cookieManager);
                         connectionGroup.addConnection(rpcConnection);
@@ -134,9 +138,9 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
                 });
         try {
             //启动
-            ChannelFuture channelFuture = nettyBoot.bind(listenPort).sync();
+            ChannelFuture channelFuture = nettyBoot.bind(rpcProperties.getPort()).sync();
         } catch (Throwable ex) {
-            log.error("{bindPort:" + listenPort + "}", ex);
+            log.error("{bindPort:" + rpcProperties.getPort() + "}", ex);
             throw new RuntimeException(ex);
         }
     }
@@ -159,7 +163,7 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
 
 
     /**
-     * 创建调用客户端的代理类(服务端调用客户端.一般不用)
+     * 创建调用客户端的代理类
      *
      * @param clazz
      * @param <T>
@@ -170,34 +174,23 @@ public class SlimRpcServer implements BeanNameAware, Closeable {
     }
 
 
-    public void setTlsConfig(TlsConfig tlsConfig) {
-        this.tlsConfig = tlsConfig;
-    }
-
-    public void setListenPort(int serverPort) {
-        this.listenPort = serverPort;
-    }
-
-    @Override
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
-    }
-
-
     /**
      * 注解的bean,自动加入
      */
     private void initRpcServer() {
         String[] beansName = applicationContext.getBeanDefinitionNames();
-        for (int i = 0; i < beansName.length; i++) {
-            String beanName = beansName[i];
+        for (String beanName : beansName) {
             Object bean = applicationContext.getBean(beanName);
-            EnableSlimRpc slimRpc = AnnotationUtils.findAnnotation(bean.getClass(), EnableSlimRpc.class);
+            OpenSlimRpc slimRpc = AnnotationUtils.findAnnotation(bean.getClass(), OpenSlimRpc.class);
             if (slimRpc == null) continue;
-            Class<?>[] clazzes = bean.getClass().getInterfaces();
-            if (clazzes == null || clazzes.length == 0) continue;
-            Arrays.stream(clazzes).forEach(c -> this.createProvider(c, bean));
+            Class<?>[] clazz = bean.getClass().getInterfaces();
+            if (clazz.length == 0) continue;
+            Arrays.stream(clazz).forEach(c -> this.createProvider(c, bean));
         }
     }
 
+    @Override
+    public void setBeanName(String name) {
+        this.beanName = name;
+    }
 }

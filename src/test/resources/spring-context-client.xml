@@ -5,7 +5,7 @@
 
 
     <!--rpc服务器配置-->
-    <bean name="rpc" class="github.slimrpc.core.api.SlimRpcClient" init-method="start" destroy-method="close" >
+    <bean name="rpc" class="github.slimrpc.core.api.RpcProxyFactoryBean" init-method="start" destroy-method="close" >
         <property name="serverList">
             <props>
                 <prop key="127.0.0.1" >6300</prop>
@@ -20,7 +20,7 @@
     </bean>
 
     <!--创建bean-->
-    <bean name="userService" factory-bean="rpc" factory-method="createConsumerProxy">
+    <bean name="userService" factory-bean="rpc" factory-method="createProxyBean">
         <!--接口路径-->
         <constructor-arg value="github.slimrpc.service.UserService" />
     </bean>

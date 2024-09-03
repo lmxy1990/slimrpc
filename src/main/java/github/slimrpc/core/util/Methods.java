@@ -36,8 +36,7 @@ public class Methods {
             Arrays.stream(classes).forEach(c -> builder.append(c.getName() + ","));
         }
         String string = builder.toString();
-        String hex = DigestUtils.md5DigestAsHex(string.getBytes());
-        return hex ;
+        return DigestUtils.md5DigestAsHex(string.getBytes());
     }
 
 

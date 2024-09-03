@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  github.slimrpc.core.config.SlimRpcConfigAutoConfiguration,\
+  github.slimrpc.core.io.annotation.RpcBeanDefinitionRegistryPostProcessor

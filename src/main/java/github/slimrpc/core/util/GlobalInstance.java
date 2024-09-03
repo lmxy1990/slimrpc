@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class GlobalInstance {
-	private static Gson gson;
+	private static final Gson gson;
 
 	static {
 		GsonBuilder gsonBuilder = new GsonBuilder();

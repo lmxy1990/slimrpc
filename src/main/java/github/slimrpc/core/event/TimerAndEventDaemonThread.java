@@ -16,9 +16,9 @@ public class TimerAndEventDaemonThread extends Thread {
 
 	private volatile boolean toStop = false;
 	private long intervalMs = 1000;
-	private BlockingQueue<ClientDaemonThreadEvent> blockingQueue;
-	private List<Runnable> timerJobList = new CopyOnWriteArrayList<Runnable>();
-	private Map<Byte, Runnable> eventHandlerMap = new ConcurrentHashMap<Byte, Runnable>();
+	private final BlockingQueue<ClientDaemonThreadEvent> blockingQueue;
+	private final List<Runnable> timerJobList = new CopyOnWriteArrayList<Runnable>();
+	private final Map<Byte, Runnable> eventHandlerMap = new ConcurrentHashMap<Byte, Runnable>();
 
 	public TimerAndEventDaemonThread(long intervalMs, BlockingQueue<ClientDaemonThreadEvent> blockingQueue) {
 		super("TimerAndEventDaemonThread");

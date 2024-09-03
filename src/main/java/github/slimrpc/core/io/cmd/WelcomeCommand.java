@@ -3,7 +3,7 @@ package github.slimrpc.core.io.cmd;
 import com.alibaba.fastjson.JSONObject;
 import github.slimrpc.core.io.constant.MsgTypeConstant;
 
-public class WellcomeCommand implements WampCommandBase {
+public class WelcomeCommand implements WampCommandBase {
 
 	private int msgType = MsgTypeConstant.wellcome;
 	private String session;

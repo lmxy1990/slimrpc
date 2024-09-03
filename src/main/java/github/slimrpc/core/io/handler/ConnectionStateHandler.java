@@ -21,7 +21,7 @@ public class ConnectionStateHandler extends ChannelDuplexHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
-        boolean success = connectionStatus.compareAndSet(ConnectionStatusConstant.connecting,ConnectionStatusConstant.actived);
+        boolean success = connectionStatus.compareAndSet(ConnectionStatusConstant.connecting,ConnectionStatusConstant.activated);
         if (success) {
         } else {
             log.error("{msg:'channelActive() compareAndSet fail', connLifecycleState:" + connectionStatus.get() + "}");

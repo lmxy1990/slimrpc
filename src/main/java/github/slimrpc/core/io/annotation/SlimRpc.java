@@ -3,7 +3,7 @@ package github.slimrpc.core.io.annotation;
 import java.lang.annotation.*;
 
 /**
- * EnableSlimRpc
+ * 该接口由服务端实现
  * <p>
  * 释义:
  *
@@ -14,6 +14,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface EnableSlimRpc {
+public @interface SlimRpc {
 
 }
